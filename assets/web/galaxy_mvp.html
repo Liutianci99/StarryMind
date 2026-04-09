@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>StarryMind Galaxy MVP</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at top, rgba(18, 38, 73, 0.9), transparent 42%),
+          radial-gradient(circle at 80% 20%, rgba(255, 168, 104, 0.2), transparent 24%),
+          radial-gradient(circle at 20% 80%, rgba(69, 218, 255, 0.22), transparent 28%),
+          #010308;
+        touch-action: none;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+      }
+
+      #scene {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      #hint {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(3, 8, 18, 0.38);
+        color: rgba(255, 255, 255, 0.78);
+        font-size: 12px;
+        letter-spacing: 0.2px;
+        backdrop-filter: blur(8px);
+        pointer-events: none;
+      }
+    </style>
+    <script src="vendor/three.min.js"></script>
+    <script src="vendor/OrbitControls.js"></script>
+  </head>
+  <body>
+    <canvas id="scene"></canvas>
+    <div id="hint">Drag to orbit · pinch to zoom · tap a star to inspect</div>
+    <script>
+      (function () {
+        const palette = {
+          satellite: 0x8fe5ff,
+          planet: 0xffc96b,
+          star: 0xff8e6c,
+        };
+        const baseSize = {
+          satellite: 0.52,
+          planet: 0.88,
+          star: 1.28,
+        };
+
+        const state = {
+          scene: null,
+          camera: null,
+          renderer: null,
+          controls: null,
+          root: null,
+          starfield: null,
+          raycaster: new THREE.Raycaster(),
+          pointer: new THREE.Vector2(),
+          bodies: new Map(),
+          selectedId: null,
+          animations: [],
+        };
+
+        function notifyReady() {
+          if (window.StarryMindReady) {
+            window.StarryMindReady.postMessage("ready");
+          }
+        }
+
+        function notifySelected(id) {
+          if (window.StarryMindBodySelected) {
+            window.StarryMindBodySelected.postMessage(
+              JSON.stringify({ id: id })
+            );
+          }
+        }
+
+        function worldPosition(position) {
+          return new THREE.Vector3(
+            position.x * 18,
+            position.y * 12,
+            position.z * 16
+          );
+        }
+
+        function sizeForBody(body) {
+          return baseSize[body.type] * (0.88 + body.intensity * 0.42);
+        }
+
+        function createNebula(scene) {
+          const gradients = [
+            { color: 0x2d7cff, position: [-14, 10, -18], size: 15 },
+            { color: 0xff9f68, position: [16, 6, -12], size: 12 },
+            { color: 0x43f4cb, position: [-8, -12, -20], size: 14 },
+          ];
+
+          gradients.forEach((entry) => {
+            const material = new THREE.SpriteMaterial({
+              color: entry.color,
+              opacity: 0.11,
+              transparent: true,
+            });
+            const sprite = new THREE.Sprite(material);
+            sprite.position.set(
+              entry.position[0],
+              entry.position[1],
+              entry.position[2]
+            );
+            sprite.scale.set(entry.size, entry.size, 1);
+            scene.add(sprite);
+          });
+        }
+
+        function createStarfield(scene) {
+          const geometry = new THREE.BufferGeometry();
+          const positions = [];
+
+          for (let index = 0; index < 1000; index += 1) {
+            positions.push((Math.random() - 0.5) * 140);
+            positions.push((Math.random() - 0.5) * 100);
+            positions.push(-10 - Math.random() * 130);
+          }
+
+          geometry.setAttribute(
+            "position",
+            new THREE.Float32BufferAttribute(positions, 3)
+          );
+
+          const material = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 0.3,
+            transparent: true,
+            opacity: 0.8,
+          });
+
+          const points = new THREE.Points(geometry, material);
+          scene.add(points);
+          state.starfield = points;
+        }
+
+        function buildBody(body) {
+          const color = palette[body.type] || 0xffffff;
+          const size = sizeForBody(body);
+          const group = new THREE.Group();
+          const target = worldPosition(body.position);
+
+          const glow = new THREE.Mesh(
+            new THREE.SphereGeometry(size * 1.8, 24, 24),
+            new THREE.MeshBasicMaterial({
+              color: color,
+              transparent: true,
+              opacity: 0.12,
+            })
+          );
+          group.add(glow);
+
+          const sphere = new THREE.Mesh(
+            new THREE.SphereGeometry(size, 32, 32),
+            new THREE.MeshStandardMaterial({
+              color: color,
+              emissive: color,
+              emissiveIntensity: body.type === "star" ? 0.72 : 0.36,
+              roughness: 0.34,
+              metalness: 0.06,
+            })
+          );
+          group.add(sphere);
+
+          if (body.type === "satellite") {
+            const ring = new THREE.Mesh(
+              new THREE.TorusGeometry(size * 1.75, size * 0.05, 8, 48),
+              new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.18,
+              })
+            );
+            ring.rotation.x = Math.PI / 2.8;
+            group.add(ring);
+          }
+
+          group.userData = { id: body.id };
+          group.position.copy(target);
+          group.scale.setScalar(1);
+
+          state.root.add(group);
+          state.bodies.set(body.id, {
+            body: body,
+            group: group,
+            sphere: sphere,
+            glow: glow,
+            basePosition: target,
+            rotationSpeed: 0.003 + Math.random() * 0.006,
+            floatSeed: Math.random() * Math.PI * 2,
+          });
+
+          return target;
+        }
+
+        function clearBodies() {
+          state.bodies.forEach((entry) => {
+            state.root.remove(entry.group);
+          });
+          state.bodies.clear();
+          state.selectedId = null;
+          state.animations = [];
+        }
+
+        function setSelectedBody(id) {
+          state.selectedId = id;
+
+          state.bodies.forEach((entry, entryId) => {
+            const active = entryId === id;
+            const targetScale = active ? 1.15 : 1;
+            const emissive = active
+              ? entry.body.type === "star"
+                ? 1.3
+                : 0.85
+              : entry.body.type === "star"
+              ? 0.72
+              : 0.36;
+
+            entry.group.userData.targetScale = targetScale;
+            entry.glow.material.opacity = active ? 0.28 : 0.12;
+            entry.sphere.material.emissiveIntensity = emissive;
+          });
+        }
+
+        function bootstrap(bodies) {
+          clearBodies();
+          bodies.forEach((body) => {
+            buildBody(body);
+          });
+
+          if (bodies.length > 0) {
+            setSelectedBody(bodies[0].id);
+          }
+        }
+
+        function addBody(body) {
+          if (state.bodies.has(body.id)) {
+            return;
+          }
+
+          const target = buildBody(body);
+          const entry = state.bodies.get(body.id);
+
+          entry.group.position.set(0, 0, 22);
+          entry.group.scale.setScalar(0.02);
+          state.animations.push({
+            id: body.id,
+            start: performance.now(),
+            duration: 900,
+            from: new THREE.Vector3(0, 0, 22),
+            to: target.clone(),
+          });
+          setSelectedBody(body.id);
+        }
+
+        function selectBody(id) {
+          if (!state.bodies.has(id)) {
+            return;
+          }
+          setSelectedBody(id);
+        }
+
+        function onResize() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          state.camera.aspect = width / height;
+          state.camera.updateProjectionMatrix();
+          state.renderer.setSize(width, height);
+          state.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        }
+
+        function onCanvasClick(event) {
+          const rect = state.renderer.domElement.getBoundingClientRect();
+          state.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+          state.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+          state.raycaster.setFromCamera(state.pointer, state.camera);
+
+          const meshes = [];
+          state.bodies.forEach((entry) => {
+            meshes.push(entry.sphere);
+          });
+
+          const intersections = state.raycaster.intersectObjects(meshes, false);
+          if (!intersections.length) {
+            return;
+          }
+
+          const mesh = intersections[0].object;
+          const id = Array.from(state.bodies.entries()).find(
+            ([, entry]) => entry.sphere === mesh
+          )?.[0];
+
+          if (!id) {
+            return;
+          }
+
+          setSelectedBody(id);
+          notifySelected(id);
+        }
+
+        function animateFrame(now) {
+          requestAnimationFrame(animateFrame);
+
+          state.controls.update();
+
+          if (state.starfield) {
+            state.starfield.rotation.y += 0.00035;
+          }
+
+          state.bodies.forEach((entry, id) => {
+            entry.sphere.rotation.y += entry.rotationSpeed;
+            entry.sphere.rotation.x += entry.rotationSpeed * 0.4;
+
+            const floatY =
+              Math.sin(now * 0.0011 + entry.floatSeed) * 0.18;
+            entry.group.position.x +=
+              (entry.basePosition.x - entry.group.position.x) * 0.08;
+            entry.group.position.y +=
+              (entry.basePosition.y + floatY - entry.group.position.y) * 0.08;
+            entry.group.position.z +=
+              (entry.basePosition.z - entry.group.position.z) * 0.08;
+
+            const targetScale =
+              entry.group.userData.targetScale || (state.selectedId === id ? 1.15 : 1);
+            const nextScale =
+              entry.group.scale.x + (targetScale - entry.group.scale.x) * 0.14;
+            entry.group.scale.setScalar(nextScale);
+          });
+
+          state.animations = state.animations.filter((animation) => {
+            const entry = state.bodies.get(animation.id);
+            if (!entry) {
+              return false;
+            }
+
+            const progress = Math.min(
+              (now - animation.start) / animation.duration,
+              1
+            );
+            const eased = 1 - Math.pow(1 - progress, 3);
+            entry.group.position.lerpVectors(animation.from, animation.to, eased);
+            entry.group.scale.setScalar(0.02 + eased * 0.98);
+            return progress < 1;
+          });
+
+          state.renderer.render(state.scene, state.camera);
+        }
+
+        function init() {
+          const canvas = document.getElementById("scene");
+
+          state.renderer = new THREE.WebGLRenderer({
+            canvas: canvas,
+            antialias: true,
+            alpha: true,
+          });
+          state.renderer.setSize(window.innerWidth, window.innerHeight);
+          state.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+          state.scene = new THREE.Scene();
+          state.scene.fog = new THREE.FogExp2(0x020611, 0.016);
+
+          state.camera = new THREE.PerspectiveCamera(
+            54,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            180
+          );
+          state.camera.position.set(0, 5, 24);
+
+          state.controls = new THREE.OrbitControls(
+            state.camera,
+            state.renderer.domElement
+          );
+          state.controls.enableDamping = true;
+          state.controls.dampingFactor = 0.045;
+          state.controls.enablePan = false;
+          state.controls.rotateSpeed = 0.58;
+          state.controls.zoomSpeed = 0.88;
+          state.controls.minDistance = 10;
+          state.controls.maxDistance = 40;
+
+          state.scene.add(new THREE.AmbientLight(0x87c8ff, 1.3));
+
+          const coldLight = new THREE.PointLight(0x6ec7ff, 1.8, 120);
+          coldLight.position.set(14, 16, 18);
+          state.scene.add(coldLight);
+
+          const warmLight = new THREE.PointLight(0xffa36b, 1.4, 120);
+          warmLight.position.set(-16, -8, 14);
+          state.scene.add(warmLight);
+
+          state.root = new THREE.Group();
+          state.scene.add(state.root);
+
+          createNebula(state.scene);
+          createStarfield(state.scene);
+
+          state.renderer.domElement.addEventListener("click", onCanvasClick);
+          window.addEventListener("resize", onResize);
+
+          window.StarryMindBridge = {
+            bootstrap: bootstrap,
+            addBody: addBody,
+            selectBody: selectBody,
+          };
+
+          requestAnimationFrame(animateFrame);
+          notifyReady();
+        }
+
+        init();
+      })();
+    </script>
+  </body>
+</html>

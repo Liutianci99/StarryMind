@@ -15,10 +15,15 @@ extension CelestialBodyTypeX on CelestialBodyType {
 }
 
 class SpacePoint {
-  const SpacePoint({required this.x, required this.y});
+  const SpacePoint({required this.x, required this.y, required this.z});
 
   final double x;
   final double y;
+  final double z;
+
+  Map<String, double> toJson() {
+    return {'x': x, 'y': y, 'z': z};
+  }
 }
 
 class CelestialBody {
@@ -52,5 +57,19 @@ class CelestialBody {
       return normalized;
     }
     return '${normalized.substring(0, 88)}...';
+  }
+
+  Map<String, Object> toRendererPayload() {
+    return {
+      'id': id,
+      'title': title,
+      'content': content,
+      'summary': summary,
+      'type': type.name,
+      'position': position.toJson(),
+      'cluster': cluster,
+      'tags': tags,
+      'intensity': intensity,
+    };
   }
 }

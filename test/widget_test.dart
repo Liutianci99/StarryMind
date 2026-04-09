@@ -28,8 +28,13 @@ void main() {
 
     final bodies = await repository.loadBootstrapBodies();
 
-    expect(bodies, isNotEmpty);
+    expect(bodies.length, greaterThanOrEqualTo(20));
     expect(bodies.first.title, '向量引力引擎');
+    expect(bodies.first.toRendererPayload()['position'], {
+      'x': -0.25,
+      'y': 0.22,
+      'z': 0.12,
+    });
     expect(
       bodies.where((body) => body.type == CelestialBodyType.star),
       isNotEmpty,

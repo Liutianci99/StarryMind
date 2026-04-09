@@ -22,12 +22,17 @@ class ThoughtComposer extends StatelessWidget {
         children: [
           Text('快速投入一个想法', style: theme.textTheme.titleLarge),
           const SizedBox(height: 6),
-          Text('少于 100 字会落成卫星，适合先捕捉碎片想法。', style: theme.textTheme.bodyMedium),
+          Text(
+            '输入后会立刻通过 Flutter -> WebView bridge 飞入 3D 星图。',
+            style: theme.textTheme.bodyMedium,
+          ),
           const SizedBox(height: 14),
           TextField(
             controller: controller,
             minLines: 1,
             maxLines: 4,
+            textInputAction: TextInputAction.send,
+            onSubmitted: (_) => onSubmit(),
             decoration: const InputDecoration(
               hintText: '比如：先把 WebView 通信桥抽出来，后面替换 Three.js 页面',
             ),
@@ -37,7 +42,7 @@ class ThoughtComposer extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '当前阶段使用 mock 语义聚类与随机坐标。',
+                  '当前阶段使用 mock 节点与随机 3D 坐标。',
                   style: theme.textTheme.bodyMedium,
                 ),
               ),

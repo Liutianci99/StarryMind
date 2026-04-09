@@ -30,8 +30,8 @@ class GalaxyController extends ChangeNotifier {
   int get planetCount => _countByType(CelestialBodyType.planet);
   int get satelliteCount => _countByType(CelestialBodyType.satellite);
   String get activeCluster => _selectedBody?.cluster ?? '等待选择节点';
-  String get rendererLabel => 'Flutter 占位画布';
-  String get nextMilestone => '接入 WebView/Three.js 通信闭环';
+  String get rendererLabel => 'WebView + Three.js MVP';
+  String get nextMilestone => '接入 AI 摘要、向量检索与持久化';
 
   Future<void> bootstrap() async {
     final seedBodies = await _repository.loadBootstrapBodies();
@@ -47,6 +47,15 @@ class GalaxyController extends ChangeNotifier {
     }
     _selectedBody = body;
     notifyListeners();
+  }
+
+  void selectBodyById(String id) {
+    for (final body in _bodies) {
+      if (body.id == id) {
+        selectBody(body);
+        return;
+      }
+    }
   }
 
   void submitThought() {
@@ -78,11 +87,13 @@ class GalaxyController extends ChangeNotifier {
   }
 
   SpacePoint _generatePoint() {
-    final angle = _random.nextDouble() * math.pi * 2;
-    final radius = 0.16 + _random.nextDouble() * 0.28;
-    final x = (0.5 + math.cos(angle) * radius).clamp(0.12, 0.88);
-    final y = (0.5 + math.sin(angle) * radius).clamp(0.14, 0.82);
-    return SpacePoint(x: x.toDouble(), y: y.toDouble());
+    final theta = _random.nextDouble() * math.pi * 2;
+    final phi = math.acos(2 * _random.nextDouble() - 1);
+    final radius = 0.35 + _random.nextDouble() * 0.45;
+    final x = math.cos(theta) * math.sin(phi) * radius * 1.15;
+    final y = math.cos(phi) * radius * 0.82;
+    final z = math.sin(theta) * math.sin(phi) * radius * 1.1;
+    return SpacePoint(x: x, y: y, z: z);
   }
 
   @override

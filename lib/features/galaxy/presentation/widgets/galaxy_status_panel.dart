@@ -29,10 +29,10 @@ class GalaxyStatusPanel extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('语义星图控制台', style: theme.textTheme.titleLarge),
+          Text('MVP 控制台', style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
           Text(
-            '先把页面结构、状态流和渲染边界定下来，后续再替换成 WebView + Three.js。',
+            '现在已经跑通 Flutter 壳、WebView 本地资源和 3D 星图通信闭环。',
             style: theme.textTheme.bodyMedium,
           ),
           const SizedBox(height: 18),

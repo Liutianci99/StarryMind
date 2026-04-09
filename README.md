@@ -1,19 +1,21 @@
 # StarryMind
 
-StarryMind（灵感星图）当前处于 Flutter 基础框架阶段，先完成应用壳层、页面分层、mock 数据流和星图界面骨架，暂未完成 MVP 的 WebView/Three.js 闭环。
+StarryMind（灵感星图）当前已经完成 Phase 1 MVP：Flutter 壳层通过 `webview_flutter` 加载本地 HTML，嵌入 Three.js 星图，并跑通新增节点与点击节点详情回传的通信闭环。
 
 ## 当前状态
 
-- 已替换默认 Flutter counter 模板
-- 已搭好 `core / features / shared` 的基础目录结构
-- 已实现首页壳层、星空背景、节点画布占位、输入区、详情区
-- 已用本地 mock 数据跑通初始化、选中节点和新增想法
+- 已接入 `webview_flutter`
+- 已将 Three.js / OrbitControls 与本地 HTML 一起打包到 assets
+- 已完成 `Flutter -> WebView` 的新增节点指令
+- 已完成 `WebView -> Flutter` 的节点点击回传
+- 已提供 20 个 mock 天体作为 MVP 初始星图
 
 ## 开发
 
 ```bash
 flutter analyze
 dart test
+flutter build apk
 flutter run
 ```
 

@@ -56,8 +56,16 @@ class _GalaxyHomePageState extends State<GalaxyHomePage> {
                           child: _controller.isBootstrapping
                               ? const Center(child: CircularProgressIndicator())
                               : isCompact
-                              ? _CompactContent(controller: _controller)
-                              : _WideContent(controller: _controller),
+                              ? _CompactContent(
+                                  controller: _controller,
+                                  onBodySelected: (id) =>
+                                      _handleBodySelected(id, showSheet: true),
+                                )
+                              : _WideContent(
+                                  controller: _controller,
+                                  onBodySelected: (id) =>
+                                      _handleBodySelected(id, showSheet: false),
+                                ),
                         ),
                         const SizedBox(height: 16),
                         ThoughtComposer(
@@ -70,6 +78,30 @@ class _GalaxyHomePageState extends State<GalaxyHomePage> {
                 ),
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _handleBodySelected(String id, {required bool showSheet}) {
+    _controller.selectBodyById(id);
+    final selectedBody = _controller.selectedBody;
+
+    if (!showSheet || selectedBody == null) {
+      return;
+    }
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(18, 18, 18, 28),
+          child: SizedBox(
+            height: math.min(MediaQuery.of(context).size.height * 0.56, 420),
+            child: CelestialBodyDetailPanel(body: selectedBody),
           ),
         );
       },
@@ -93,10 +125,10 @@ class _Header extends StatelessWidget {
               children: [
                 Text('StarryMind', style: theme.textTheme.headlineLarge),
                 const SizedBox(height: 8),
-                Text('灵感星图基础壳层', style: theme.textTheme.titleLarge),
+                Text('灵感星图 MVP', style: theme.textTheme.titleLarge),
                 const SizedBox(height: 8),
                 Text(
-                  '当前用 Flutter 本地组件先把页面结构、状态流和 mock 数据闭环搭起来，后续再替换掉中心画布实现。',
+                  '当前版本已经跑通 Flutter 壳、WebView 本地 HTML、Three.js 渲染以及节点点击回传详情的最小闭环。',
                   style: theme.textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 14),
@@ -104,9 +136,9 @@ class _Header extends StatelessWidget {
                   spacing: 10,
                   runSpacing: 10,
                   children: const [
-                    _HeaderBadge(label: '阶段：Foundation'),
-                    _HeaderBadge(label: '数据：Mock'),
-                    _HeaderBadge(label: '目标：留出渲染桥'),
+                    _HeaderBadge(label: '阶段：MVP'),
+                    _HeaderBadge(label: '渲染：Three.js'),
+                    _HeaderBadge(label: '桥接：Flutter <-> WebView'),
                   ],
                 ),
               ],
@@ -120,10 +152,10 @@ class _Header extends StatelessWidget {
                     children: [
                       Text('StarryMind', style: theme.textTheme.headlineLarge),
                       const SizedBox(height: 8),
-                      Text('灵感星图基础壳层', style: theme.textTheme.titleLarge),
+                      Text('灵感星图 MVP', style: theme.textTheme.titleLarge),
                       const SizedBox(height: 8),
                       Text(
-                        '当前用 Flutter 本地组件先把页面结构、状态流和 mock 数据闭环搭起来，后续再替换掉中心画布实现。',
+                        '当前版本已经跑通 Flutter 壳、WebView 本地 HTML、Three.js 渲染以及节点点击回传详情的最小闭环。',
                         style: theme.textTheme.bodyMedium,
                       ),
                     ],
@@ -135,9 +167,9 @@ class _Header extends StatelessWidget {
                   runSpacing: 10,
                   alignment: WrapAlignment.end,
                   children: [
-                    _HeaderBadge(label: '阶段：Foundation'),
-                    _HeaderBadge(label: '数据：Mock'),
-                    _HeaderBadge(label: '目标：留出渲染桥'),
+                    _HeaderBadge(label: '阶段：MVP'),
+                    _HeaderBadge(label: '渲染：Three.js'),
+                    _HeaderBadge(label: '桥接：Flutter <-> WebView'),
                   ],
                 ),
               ],
@@ -147,41 +179,41 @@ class _Header extends StatelessWidget {
 }
 
 class _CompactContent extends StatelessWidget {
-  const _CompactContent({required this.controller});
+  const _CompactContent({
+    required this.controller,
+    required this.onBodySelected,
+  });
 
   final GalaxyController controller;
+  final ValueChanged<String> onBodySelected;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final canvasHeight = math.max(280.0, constraints.maxHeight * 0.44);
+        final canvasHeight = math.max(320.0, constraints.maxHeight * 0.78);
 
-        return SingleChildScrollView(
-          child: Column(
-            children: [
-              GalaxyStatusPanel(
-                totalBodies: controller.totalBodies,
-                starCount: controller.starCount,
-                planetCount: controller.planetCount,
-                satelliteCount: controller.satelliteCount,
-                activeCluster: controller.activeCluster,
-                rendererLabel: controller.rendererLabel,
-                nextMilestone: controller.nextMilestone,
+        return Column(
+          children: [
+            GalaxyStatusPanel(
+              totalBodies: controller.totalBodies,
+              starCount: controller.starCount,
+              planetCount: controller.planetCount,
+              satelliteCount: controller.satelliteCount,
+              activeCluster: controller.activeCluster,
+              rendererLabel: controller.rendererLabel,
+              nextMilestone: controller.nextMilestone,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: canvasHeight,
+              child: GalaxyRenderSurface(
+                bodies: controller.bodies,
+                selectedBody: controller.selectedBody,
+                onBodySelected: onBodySelected,
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                height: canvasHeight,
-                child: GalaxyRenderSurface(
-                  bodies: controller.bodies,
-                  selectedBody: controller.selectedBody,
-                  onSelect: controller.selectBody,
-                ),
-              ),
-              const SizedBox(height: 16),
-              CelestialBodyDetailPanel(body: controller.selectedBody),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
@@ -189,9 +221,10 @@ class _CompactContent extends StatelessWidget {
 }
 
 class _WideContent extends StatelessWidget {
-  const _WideContent({required this.controller});
+  const _WideContent({required this.controller, required this.onBodySelected});
 
   final GalaxyController controller;
+  final ValueChanged<String> onBodySelected;
 
   @override
   Widget build(BuildContext context) {
@@ -214,7 +247,7 @@ class _WideContent extends StatelessWidget {
           child: GalaxyRenderSurface(
             bodies: controller.bodies,
             selectedBody: controller.selectedBody,
-            onSelect: controller.selectBody,
+            onBodySelected: onBodySelected,
           ),
         ),
         const SizedBox(width: 16),
