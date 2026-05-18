@@ -24,9 +24,7 @@ void main() {
   });
 
   test('MockGalaxyRepository returns bootstrap bodies', () async {
-    final repository = MockGalaxyRepository();
-
-    final bodies = await repository.loadBootstrapBodies();
+    final bodies = MockGalaxyRepository.seedBodies();
 
     expect(bodies.length, greaterThanOrEqualTo(20));
     expect(bodies.first.title, '向量引力引擎');

@@ -29,22 +29,18 @@ class GalaxyController extends ChangeNotifier {
   int get starCount => _countByType(CelestialBodyType.star);
   int get planetCount => _countByType(CelestialBodyType.planet);
   int get satelliteCount => _countByType(CelestialBodyType.satellite);
-  String get activeCluster => _selectedBody?.cluster ?? '等待选择节点';
-  String get rendererLabel => 'WebView + Three.js MVP';
-  String get nextMilestone => '接入 AI 摘要、向量检索与持久化';
+  String get activeCluster => _selectedBody?.cluster ?? '';
 
   Future<void> bootstrap() async {
-    final seedBodies = await _repository.loadBootstrapBodies();
-    _bodies = seedBodies;
-    _selectedBody = seedBodies.isNotEmpty ? seedBodies.first : null;
+    final loaded = await _repository.loadAll();
+    _bodies = loaded;
+    _selectedBody = loaded.isNotEmpty ? loaded.first : null;
     _isBootstrapping = false;
     notifyListeners();
   }
 
   void selectBody(CelestialBody body) {
-    if (_selectedBody?.id == body.id) {
-      return;
-    }
+    if (_selectedBody?.id == body.id) return;
     _selectedBody = body;
     notifyListeners();
   }
@@ -58,11 +54,9 @@ class GalaxyController extends ChangeNotifier {
     }
   }
 
-  void submitThought() {
+  Future<void> submitThought() async {
     final raw = composerController.text.trim();
-    if (raw.isEmpty) {
-      return;
-    }
+    if (raw.isEmpty) return;
 
     final body = CelestialBody(
       id: 'local-${DateTime.now().microsecondsSinceEpoch}',
@@ -80,6 +74,17 @@ class GalaxyController extends ChangeNotifier {
     _selectedBody = body;
     composerController.clear();
     notifyListeners();
+
+    await _repository.save(body);
+  }
+
+  Future<void> deleteBody(String id) async {
+    _bodies = _bodies.where((b) => b.id != id).toList();
+    if (_selectedBody?.id == id) {
+      _selectedBody = _bodies.isNotEmpty ? _bodies.last : null;
+    }
+    notifyListeners();
+    await _repository.delete(id);
   }
 
   int _countByType(CelestialBodyType type) {
@@ -90,10 +95,11 @@ class GalaxyController extends ChangeNotifier {
     final theta = _random.nextDouble() * math.pi * 2;
     final phi = math.acos(2 * _random.nextDouble() - 1);
     final radius = 0.35 + _random.nextDouble() * 0.45;
-    final x = math.cos(theta) * math.sin(phi) * radius * 1.15;
-    final y = math.cos(phi) * radius * 0.82;
-    final z = math.sin(theta) * math.sin(phi) * radius * 1.1;
-    return SpacePoint(x: x, y: y, z: z);
+    return SpacePoint(
+      x: math.cos(theta) * math.sin(phi) * radius * 1.15,
+      y: math.cos(phi) * radius * 0.82,
+      z: math.sin(theta) * math.sin(phi) * radius * 1.1,
+    );
   }
 
   @override

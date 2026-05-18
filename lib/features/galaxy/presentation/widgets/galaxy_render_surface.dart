@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:starry_mind/core/theme/app_theme.dart';
 import 'package:starry_mind/features/galaxy/domain/models/celestial_body.dart';
-import 'package:starry_mind/shared/presentation/widgets/frosted_panel.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class GalaxyRenderSurface extends StatefulWidget {
@@ -34,14 +34,12 @@ class _GalaxyRenderSurfaceState extends State<GalaxyRenderSurface> {
     super.initState();
     _webViewController = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0x00000000))
+      ..setBackgroundColor(AppTheme.creamCanvas)
       ..addJavaScriptChannel(
         'StarryMindReady',
         onMessageReceived: (_) {
           if (!_rendererReady && mounted) {
-            setState(() {
-              _rendererReady = true;
-            });
+            setState(() => _rendererReady = true);
           }
           unawaited(_bootstrapRenderer());
         },
@@ -52,9 +50,7 @@ class _GalaxyRenderSurfaceState extends State<GalaxyRenderSurface> {
           final payload = jsonDecode(message.message);
           if (payload is Map<String, dynamic>) {
             final id = payload['id'];
-            if (id is String) {
-              widget.onBodySelected(id);
-            }
+            if (id is String) widget.onBodySelected(id);
           }
         },
       )
@@ -64,158 +60,71 @@ class _GalaxyRenderSurfaceState extends State<GalaxyRenderSurface> {
   @override
   void didUpdateWidget(covariant GalaxyRenderSurface oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    if (!_rendererReady) {
-      return;
-    }
-
+    if (!_rendererReady) return;
     unawaited(_syncRendererIncrementally());
   }
 
   Future<void> _bootstrapRenderer() async {
-    if (!_rendererReady) {
-      return;
-    }
-
-    final bodiesPayload = widget.bodies
-        .map((body) => body.toRendererPayload())
+    if (!_rendererReady) return;
+    final payload = widget.bodies
+        .map((b) => b.toRendererPayload())
         .toList(growable: false);
-
-    await _runJavaScript(
-      'window.StarryMindBridge.bootstrap(${jsonEncode(bodiesPayload)});',
-    );
-
+    await _runJs('window.StarryMindBridge.bootstrap(${jsonEncode(payload)});');
     _syncedBodyIds
       ..clear()
-      ..addAll(widget.bodies.map((body) => body.id));
-
+      ..addAll(widget.bodies.map((b) => b.id));
     await _syncSelection();
   }
 
   Future<void> _syncRendererIncrementally() async {
     for (final body in widget.bodies) {
-      if (_syncedBodyIds.contains(body.id)) {
-        continue;
-      }
-
-      await _runJavaScript(
-        'window.StarryMindBridge.addBody(${jsonEncode(body.toRendererPayload())});',
-      );
+      if (_syncedBodyIds.contains(body.id)) continue;
+      await _runJs('window.StarryMindBridge.addBody(${jsonEncode(body.toRendererPayload())});');
       _syncedBodyIds.add(body.id);
     }
-
     await _syncSelection();
   }
 
   Future<void> _syncSelection() async {
-    final selectedId = widget.selectedBody?.id;
-    if (selectedId == null || selectedId == _lastSelectedBodyId) {
-      return;
-    }
-
-    _lastSelectedBodyId = selectedId;
-    await _runJavaScript(
-      'window.StarryMindBridge.selectBody(${jsonEncode(selectedId)});',
-    );
+    final id = widget.selectedBody?.id;
+    if (id == null || id == _lastSelectedBodyId) return;
+    _lastSelectedBodyId = id;
+    await _runJs('window.StarryMindBridge.selectBody(${jsonEncode(id)});');
   }
 
-  Future<void> _runJavaScript(String script) async {
-    try {
-      await _webViewController.runJavaScript(script);
-    } catch (_) {
-      // The renderer may still be spinning up; later sync passes will retry.
-    }
+  Future<void> _runJs(String script) async {
+    try { await _webViewController.runJavaScript(script); } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return FrostedPanel(
-      padding: EdgeInsets.zero,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
-        child: Stack(
-          children: [
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Container(color: AppTheme.creamCanvas),
+          ),
+          Positioned.fill(
+            child: WebViewWidget(controller: _webViewController),
+          ),
+          if (!_rendererReady)
             Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFF13284B).withValues(alpha: 0.24),
-                      const Color(0xFF050A14).withValues(alpha: 0.22),
-                      const Color(0xFF02040A).withValues(alpha: 0.82),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: WebViewWidget(controller: _webViewController),
-            ),
-            Positioned(
-              top: 18,
-              left: 18,
-              right: 18,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Galaxy MVP', style: theme.textTheme.titleLarge),
-                        const SizedBox(height: 6),
-                        Text(
-                          'Flutter 壳已接入本地 WebView / Three.js 渲染页。',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
+              child: Container(
+                color: AppTheme.creamCanvas,
+                child: const Center(
+                  child: SizedBox(
+                    width: 12, height: 12,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 1.5,
+                      color: AppTheme.starGold,
                     ),
                   ),
-                  _SurfaceBadge(
-                    label: _rendererReady ? 'bridge online' : 'loading',
-                  ),
-                ],
-              ),
-            ),
-            const Positioned(
-              right: 18,
-              bottom: 18,
-              child: _SurfaceBadge(label: 'tap bodies for detail'),
-            ),
-            if (!_rendererReady)
-              Positioned.fill(
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.18),
-                  ),
-                  child: const Center(child: CircularProgressIndicator()),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
-    );
-  }
-}
-
-class _SurfaceBadge extends StatelessWidget {
-  const _SurfaceBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.26),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
-      child: Text(label),
     );
   }
 }
