@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:starry_mind/core/theme/app_theme.dart';
 
 class StarfieldBackdrop extends StatelessWidget {
   const StarfieldBackdrop({super.key, required this.child});
@@ -13,19 +14,19 @@ class StarfieldBackdrop extends StatelessWidget {
       children: [
         const Positioned.fill(child: _BackgroundGradient()),
         const Positioned(
-          top: -120,
-          left: -60,
-          child: _GlowOrb(size: 280, color: Color(0x3344C4FF)),
+          top: -80,
+          left: -40,
+          child: _GlowOrb(size: 260, color: Color(0x24C9934B)),
         ),
         const Positioned(
-          right: -80,
-          top: 140,
-          child: _GlowOrb(size: 240, color: Color(0x33FFB36B)),
+          right: -60,
+          top: 200,
+          child: _GlowOrb(size: 220, color: Color(0x1A7D5A8E)),
         ),
         const Positioned(
-          bottom: -80,
-          left: 90,
-          child: _GlowOrb(size: 260, color: Color(0x2236F6B0)),
+          bottom: -60,
+          left: 80,
+          child: _GlowOrb(size: 240, color: Color(0x1A7A9080)),
         ),
         Positioned.fill(
           child: IgnorePointer(
@@ -43,13 +44,17 @@ class _BackgroundGradient extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
+    return const DecoratedBox(
+      decoration: BoxDecoration(
         gradient: RadialGradient(
-          center: Alignment(0, -0.4),
-          radius: 1.1,
-          colors: [Color(0xFF10203D), Color(0xFF060B16), Color(0xFF010308)],
-          stops: [0, 0.55, 1],
+          center: Alignment(0, -0.3),
+          radius: 1.2,
+          colors: [
+            AppTheme.creamPaper2,
+            AppTheme.creamCanvas,
+            AppTheme.creamVoid,
+          ],
+          stops: [0, 0.5, 1],
         ),
       ),
     );
@@ -70,7 +75,9 @@ class _GlowOrb extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: RadialGradient(colors: [color, color.withValues(alpha: 0)]),
+          gradient: RadialGradient(
+            colors: [color, color.withValues(alpha: 0)],
+          ),
         ),
       ),
     );
@@ -82,19 +89,19 @@ class _StarfieldPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
 
-    for (var index = 0; index < 140; index++) {
+    for (var index = 0; index < 100; index++) {
       final x = _hash(index * 17 + 1) * size.width;
       final y = _hash(index * 31 + 3) * size.height;
-      final radius = 0.5 + _hash(index * 53 + 7) * 2;
-      final alpha = 0.18 + _hash(index * 71 + 11) * 0.72;
-      paint.color = Colors.white.withValues(alpha: alpha);
+      final radius = 0.4 + _hash(index * 53 + 7) * 1.2;
+      final alpha = 0.08 + _hash(index * 71 + 11) * 0.18;
+      paint.color = AppTheme.ink900.withValues(alpha: alpha);
       canvas.drawCircle(Offset(x, y), radius, paint);
 
-      if (index % 13 == 0) {
+      if (index % 11 == 0) {
         final glowPaint = Paint()
           ..style = PaintingStyle.fill
-          ..color = const Color(0xFF8FE9FF).withValues(alpha: 0.18);
-        canvas.drawCircle(Offset(x, y), radius * 3.6, glowPaint);
+          ..color = AppTheme.starGold.withValues(alpha: 0.12);
+        canvas.drawCircle(Offset(x, y), radius * 3.0, glowPaint);
       }
     }
   }

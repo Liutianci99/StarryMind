@@ -1,9 +1,7 @@
 import 'package:starry_mind/features/galaxy/domain/models/celestial_body.dart';
-import 'package:starry_mind/features/galaxy/domain/repositories/galaxy_repository.dart';
 
-class MockGalaxyRepository implements GalaxyRepository {
-  @override
-  Future<List<CelestialBody>> loadBootstrapBodies() async {
+class MockGalaxyRepository {
+  static List<CelestialBody> seedBodies() {
     return [
       _body(
         id: 'seed-1',

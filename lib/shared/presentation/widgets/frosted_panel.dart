@@ -1,11 +1,14 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:starry_mind/core/theme/app_theme.dart';
 
 class FrostedPanel extends StatelessWidget {
   const FrostedPanel({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(20),
-    this.borderRadius = 28,
+    this.borderRadius = 20,
   });
 
   final Widget child;
@@ -14,25 +17,27 @@ class FrostedPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.18),
-            blurRadius: 34,
-            offset: const Offset(0, 20),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(borderRadius),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: const Color(0xD1FDFAF1),
+            borderRadius: BorderRadius.circular(borderRadius),
+            border: Border.all(color: AppTheme.ink900.withValues(alpha: 0.10)),
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.ink900.withValues(alpha: 0.14),
+                blurRadius: 28,
+                offset: const Offset(0, 12),
+                spreadRadius: -12,
+              ),
+            ],
           ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.02),
-            blurRadius: 0,
-            spreadRadius: 1,
-          ),
-        ],
+          child: Padding(padding: padding, child: child),
+        ),
       ),
-      child: Padding(padding: padding, child: child),
     );
   }
 }
