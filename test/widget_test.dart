@@ -38,4 +38,30 @@ void main() {
       isNotEmpty,
     );
   });
+
+  group('CelestialBody JSON', () {
+    test('roundtrip serialization', () {
+      final body = CelestialBody(
+        id: 'test-1',
+        title: 'Test',
+        content: 'Hello world',
+        type: CelestialBodyType.planet,
+        position: SpacePoint(x: 0.1, y: 0.2, z: 0.3),
+        createdAt: DateTime(2026, 5, 18),
+        cluster: 'test',
+        tags: ['a', 'b'],
+        intensity: 0.7,
+      );
+      final json = body.toJson();
+      final restored = CelestialBody.fromJson(json);
+      expect(restored.id, body.id);
+      expect(restored.title, body.title);
+      expect(restored.type, body.type);
+      expect(restored.position.x, body.position.x);
+      expect(restored.position.y, body.position.y);
+      expect(restored.position.z, body.position.z);
+      expect(restored.tags, body.tags);
+      expect(restored.intensity, body.intensity);
+    });
+  });
 }
