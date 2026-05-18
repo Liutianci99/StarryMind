@@ -1,0 +1,175 @@
+/* ============================================================
+   STARRYMIND — Design Tokens
+   Cream-white universe (淡雅米白色宇宙) — default theme
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Serif+SC:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap');
+
+:root {
+  /* =========== CREAM UNIVERSE — canvas & surfaces =========== */
+  --cream-void:    #ebe6d4;   /* deepest — edge of the sky */
+  --cream-deep:    #f0ebdb;   /* elevated dusk */
+  --cream-canvas:  #f6f1e1;   /* primary canvas */
+  --cream-paper:   #faf6ea;   /* surface / card */
+  --cream-paper-2: #fdfaf1;   /* raised surface */
+  --cream-hover:   #f2ecd8;
+  --cream-press:   #eae2c9;
+
+  /* Ink — text color on cream */
+  --ink-900: #1d2140;   /* primary ink — deep indigo */
+  --ink-700: #2e3458;
+  --ink-500: #5a6086;
+  --ink-400: #878cac;
+  --ink-300: #b4b7c8;
+
+  /* Celestial accents — these are the star / planet / satellite colors */
+  --star-gold:       #c9934b;   /* warm star (primary accent) */
+  --star-gold-soft:  #e0b775;
+  --star-cream:      #f4ead2;   /* brightest starlight */
+  --plum:            #7d5a8e;   /* nebula / reflective */
+  --plum-soft:       #a98cc2;
+  --sage:            #7a9080;   /* sentiment: calm */
+  --ember:           #c8704e;   /* sentiment: tense / danger */
+  --indigo-cool:     #6a7bb0;   /* sentiment: cool / distant */
+
+  /* Line / connection */
+  --line-ink:       rgba(29, 33, 64, 0.40);
+  --line-ink-faint: rgba(29, 33, 64, 0.15);
+  --line-gold:      rgba(201, 147, 75, 0.55);
+
+  /* =========== SEMANTIC =========== */
+  --bg-canvas:   var(--cream-canvas);
+  --bg-void:     var(--cream-void);
+  --bg-surface:  var(--cream-paper);
+  --bg-raised:   var(--cream-paper-2);
+  --bg-hover:    var(--cream-hover);
+  --bg-press:    var(--cream-press);
+
+  --fg-1:        var(--ink-900);
+  --fg-2:        var(--ink-700);
+  --fg-3:        var(--ink-500);
+  --fg-4:        var(--ink-400);
+  --fg-accent:   var(--star-gold);
+  --fg-inverse:  var(--cream-canvas);
+
+  --border-1:    rgba(29, 33, 64, 0.16);
+  --border-2:    rgba(29, 33, 64, 0.09);
+  --border-3:    rgba(29, 33, 64, 0.04);
+  --border-accent: rgba(201, 147, 75, 0.50);
+
+  --success: #7a9080;
+  --warning: #c9934b;
+  --danger:  #c8704e;
+  --info:    #6a7bb0;
+
+  /* =========== SHADOWS + GLOW =========== */
+  /* Soft, warm shadows on cream — not crispy */
+  --shadow-card:   0 1px 2px rgba(29, 33, 64, 0.04),
+                   0 12px 28px -12px rgba(29, 33, 64, 0.14);
+  --shadow-raised: 0 1px 2px rgba(29, 33, 64, 0.05),
+                   0 20px 40px -16px rgba(29, 33, 64, 0.18);
+  --shadow-pop:    0 40px 80px -20px rgba(29, 33, 64, 0.22),
+                   0 0 0 1px rgba(29, 33, 64, 0.06);
+
+  /* Star glow — warm halos visible on cream */
+  --glow-star-sm:  0 0 12px rgba(201, 147, 75, 0.45);
+  --glow-star-md:  0 0 22px rgba(201, 147, 75, 0.50), 0 0 4px rgba(244, 234, 210, 0.9);
+  --glow-star-lg:  0 0 40px rgba(201, 147, 75, 0.40), 0 0 8px rgba(244, 234, 210, 0.7);
+  --glow-plum:     0 0 28px rgba(125, 90, 142, 0.40);
+
+  /* =========== RADII =========== */
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   8px;
+  --radius-lg:   14px;
+  --radius-xl:   20px;
+  --radius-2xl:  28px;
+  --radius-pill: 999px;
+
+  /* =========== SPACING =========== */
+  --space-0: 0; --space-1: 4px; --space-2: 8px; --space-3: 12px;
+  --space-4: 16px; --space-5: 24px; --space-6: 32px; --space-7: 48px;
+  --space-8: 64px; --space-9: 96px; --space-10: 128px;
+
+  /* =========== MOTION =========== */
+  --ease-drift:  cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-quick: 160ms; --dur-base: 280ms; --dur-slow: 600ms; --dur-drift: 1800ms;
+
+  /* =========== TYPE =========== */
+  --font-display: 'Cormorant Garamond', 'Noto Serif SC', Georgia, serif;
+  --font-body:    'Cormorant Garamond', 'Noto Serif SC', Georgia, serif;
+  --font-ui:      'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --fs-h0: clamp(48px, 6vw, 88px);
+  --fs-h1: clamp(36px, 4vw, 56px);
+  --fs-h2: 28px; --fs-h3: 22px; --fs-h4: 18px;
+  --fs-body: 16px; --fs-sm: 14px; --fs-xs: 12px; --fs-micro: 11px;
+
+  --lh-tight: 1.1; --lh-display: 1.15; --lh-snug: 1.35; --lh-body: 1.6; --lh-loose: 1.75;
+  --tracking-wide: 0.14em; --tracking-body: 0;
+  --tracking-tight: -0.01em; --tracking-display: -0.015em;
+
+  --z-canvas: 0; --z-content: 10; --z-sticky: 50;
+  --z-nav: 100; --z-overlay: 500; --z-modal: 1000; --z-toast: 2000;
+}
+
+/* =========== DEEP NIGHT (alternate theme, former default) =========== */
+[data-theme="deep-night"] {
+  --bg-canvas:  #0f1530;
+  --bg-void:    #0a0e1f;
+  --bg-surface: #151c3d;
+  --bg-raised:  #1e2750;
+  --bg-hover:   #232c5a;
+  --bg-press:   #1a2246;
+
+  --fg-1: #f6f2e8; --fg-2: #ece5d4; --fg-3: #d9d0bc; --fg-4: #b5ac97;
+  --fg-accent: var(--star-gold-soft);
+  --fg-inverse: var(--ink-900);
+
+  --border-1: #2a3362;
+  --border-2: rgba(246, 242, 232, 0.10);
+  --border-3: rgba(246, 242, 232, 0.05);
+
+  --line-ink:       rgba(246, 242, 232, 0.55);
+  --line-ink-faint: rgba(246, 242, 232, 0.22);
+
+  --shadow-card:   0 1px 0 rgba(246,242,232,0.04) inset, 0 24px 48px -24px rgba(0,0,0,0.6);
+  --shadow-raised: 0 1px 0 rgba(246,242,232,0.06) inset, 0 32px 64px -24px rgba(0,0,0,0.7);
+}
+
+/* ============================================================
+   SEMANTIC TYPE ROLES
+   ============================================================ */
+.t-h0, .t-hero {
+  font-family: var(--font-display); font-weight: 500; font-size: var(--fs-h0);
+  line-height: var(--lh-display); letter-spacing: var(--tracking-display); color: var(--fg-1);
+}
+.t-h1 { font-family: var(--font-display); font-weight: 500; font-size: var(--fs-h1);
+  line-height: var(--lh-display); letter-spacing: var(--tracking-display); color: var(--fg-1); }
+.t-h2 { font-family: var(--font-display); font-weight: 500; font-size: var(--fs-h2);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-tight); color: var(--fg-1); }
+.t-h3 { font-family: var(--font-body); font-weight: 600; font-size: var(--fs-h3);
+  line-height: var(--lh-snug); letter-spacing: var(--tracking-tight); color: var(--fg-1); }
+.t-h4 { font-family: var(--font-body); font-weight: 600; font-size: var(--fs-h4);
+  line-height: var(--lh-snug); color: var(--fg-1); }
+.t-body { font-family: var(--font-body); font-weight: 400; font-size: var(--fs-body);
+  line-height: var(--lh-body); color: var(--fg-2); }
+.t-body-serif { font-family: var(--font-display); font-weight: 400; font-style: italic;
+  font-size: 19px; line-height: var(--lh-loose); color: var(--fg-2); }
+.t-small { font-family: var(--font-body); font-weight: 400; font-size: var(--fs-sm);
+  line-height: var(--lh-body); color: var(--fg-3); }
+.t-meta { font-family: var(--font-body); font-weight: 400; font-size: var(--fs-xs);
+  line-height: var(--lh-snug); color: var(--fg-3); }
+.t-eyebrow { font-family: var(--font-body); font-weight: 500; font-size: var(--fs-micro);
+  line-height: 1; text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--fg-3); }
+.t-mono { font-family: var(--font-mono); font-weight: 400; font-size: 13px; color: var(--fg-2); }
+.t-quote { font-family: var(--font-display); font-weight: 400; font-style: italic;
+  font-size: clamp(22px, 2.5vw, 30px); line-height: 1.4; letter-spacing: var(--tracking-tight); color: var(--fg-1); }
+
+.sm-root, .sm-root * { box-sizing: border-box; }
+.sm-root { font-family: var(--font-body); color: var(--fg-1); background: var(--bg-canvas);
+  -webkit-font-smoothing: antialiased; }
+
+::selection { background: var(--star-gold); color: var(--cream-canvas); }

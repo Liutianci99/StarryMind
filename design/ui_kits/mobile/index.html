@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>StarryMind — Mobile UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css"/>
+<style>
+  html,body{margin:0;padding:0;background:#f0ebdb;min-height:100vh;color:#1d2140;font-family:'Cormorant Garamond',serif;-webkit-font-smoothing:antialiased}
+  @keyframes breathe { 0%,100% { filter: brightness(1); } 50% { filter: brightness(1.2); } }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px);} to {opacity:1; transform: translateY(0);} }
+  .stage {
+    min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+    gap: 80px; padding: 80px 24px 120px; background:
+      radial-gradient(circle at 20% 20%, rgba(125,90,142,.14), transparent 45%),
+      radial-gradient(circle at 80% 80%, rgba(201,147,75,.12), transparent 45%),
+      #f0ebdb;
+  }
+  .stage-header { text-align: center; max-width: 640px; }
+  .stage-header h1 { font-family: 'Cormorant Garamond',serif; font-weight: 400; font-style: italic; font-size: 52px; letter-spacing: -1px; margin: 0; color: #1d2140;}
+  .stage-header p { font-family: 'Cormorant Garamond',serif; font-size: 17px; color: #5a6086; line-height: 1.75; margin: 16px auto 0; max-width: 520px; }
+  .screens { display: flex; gap: 48px; flex-wrap: wrap; justify-content: center; }
+  .screen-label { font-family: Inter; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: #9d7033; text-align: center; margin-top: 18px; }
+</style>
+</head>
+<body>
+<div id="root" class="stage"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="components.jsx"></script>
+
+<script type="text/babel">
+/*
+  Orbital data model (slower, more varied):
+    orbitSpeed: radians/sec  — kept low for gentle drift (0.01–0.09)
+    orbitR:     viewBox units
+    orbitPhase: starting angle
+    eccentricity: 0..1 vertical squash (ellipse shape)
+    tilt:       rotation of the orbit, radians
+    retrograde: bool — reverse direction
+*/
+const SEED_BODIES = [
+  // Memory — amber star, orbits drifting across
+  { id:'b1', type:'star', x:34, y:52, cluster:'memory', sentiment:'amber',
+    title:'Memory keeps returning tonight.',
+    excerpt:'A street I haven\u2019t walked in ten years. The smell of rain on warm concrete.',
+    body:'那条街我已经十年没有走过了。\n\n雨落在温热的水泥上，有一种潮湿的甜。',
+    time:'3h ago' },
+  { id:'b2', type:'planet', anchor:'b1', orbitR:16, orbitSpeed:0.040, orbitPhase:0.4,
+    eccentricity:0.55, tilt:-0.4,
+    cluster:'memory', sentiment:'rose',
+    title:'A photograph I didn\u2019t take.',
+    excerpt:'The lamp post. The cat. Both gone now.',
+    body:'那年秋天，我在巷口看见一只橘猫蹲在路灯下。\n我没有拍下来。',
+    time:'5h ago' },
+  { id:'b3', type:'satellite', anchor:'b2', orbitR:4, orbitSpeed:0.09, orbitPhase:0.0,
+    eccentricity:0.9, tilt:0.8, cluster:'memory', sentiment:'honey',
+    title:'rain smell', excerpt:'petrichor. always the same trigger.', time:'1d ago' },
+  { id:'b4', type:'satellite', anchor:'b1', orbitR:10, orbitSpeed:0.055, orbitPhase:2.1,
+    eccentricity:0.35, tilt:0.6, retrograde:true,
+    cluster:'memory', sentiment:'terracotta',
+    title:'ten years', excerpt:'how did it go by.', time:'1d ago' },
+
+  // Work — cobalt star
+  { id:'b6', type:'star', x:68, y:148, cluster:'work', sentiment:'cobalt',
+    title:'Building something small, on purpose.',
+    excerpt:'Constraints as a kindness to the user and to me.',
+    body:'小，是一种善意。\n\n对用户，它意味着更少的负担；对我自己，它意味着能把少数几件事做得更好。',
+    time:'2d ago' },
+  { id:'b5', type:'planet', anchor:'b6', orbitR:14, orbitSpeed:0.035, orbitPhase:1.1,
+    eccentricity:0.75, tilt:0.3, cluster:'work', sentiment:'cobalt',
+    title:'A calmer way of shipping.',
+    excerpt:'Maybe slower, with more room for revision.',
+    body:'慢一点。留更多修改的余地。',
+    time:'2d ago' },
+  { id:'b7', type:'satellite', anchor:'b5', orbitR:3.8, orbitSpeed:0.08, orbitPhase:0.2,
+    eccentricity:1, tilt:-0.5,
+    cluster:'work', sentiment:'sage',
+    title:'ship less', excerpt:'less chrome, less logic.', time:'2d ago' },
+  { id:'b8', type:'satellite', anchor:'b6', orbitR:11, orbitSpeed:0.028, orbitPhase:3.1,
+    eccentricity:0.25, tilt:1.1, retrograde:true,
+    cluster:'work', sentiment:'linen',
+    title:'rest is also work', excerpt:'', time:'3d ago' },
+
+  // Regret wanderer — long, tilted orbit around memory star
+  { id:'b9', type:'planet', anchor:'b1', orbitR:30, orbitSpeed:0.012, orbitPhase:4.7,
+    eccentricity:0.85, tilt:0.9,
+    cluster:'regret', sentiment:'plum',
+    title:'A sentence I should not have sent.',
+    excerpt:'I still reread it.',
+    body:'我还会回去看那条消息。',
+    time:'4d ago' },
+  { id:'b10', type:'satellite', anchor:'b9', orbitR:3, orbitSpeed:0.11, orbitPhase:1.8,
+    eccentricity:0.9, tilt:0,
+    cluster:'drift', sentiment:'mauve',
+    title:'a small bird', excerpt:'on the balcony at 6am.', time:'5d ago' },
+];
+
+const FILTERS = ['all','memory','work','regret','drift'];
+
+function Prototype({ label, initialTab='sky', initialReader=false, initialReading=false, initialSearching=false }) {
+  const [bodies, setBodies] = React.useState(SEED_BODIES);
+  const [hit, setHit] = React.useState(null);
+  const [reader, setReader] = React.useState(null);
+  const [filter, setFilter] = React.useState('all');
+  const [showReading, setShowReading] = React.useState(initialReading);
+  const [settings, setSettings] = React.useState(false);
+  const [toast, setToast] = React.useState(null);
+  const [tab, setTab] = React.useState(initialTab);
+  const [pan, setPan] = React.useState({ x: 0, y: 0 });
+
+  // Search
+  const [searching, setSearching] = React.useState(initialSearching);
+  const [query, setQuery] = React.useState(initialSearching ? 'rain' : '');
+
+  // Compose
+  const [composing, setComposing] = React.useState(false);
+  const [draft, setDraft] = React.useState('');
+  const [cDraftSentiment, setCDraftSentiment] = React.useState('amber');
+  const [cDraftCluster, setCDraftCluster] = React.useState('drift');
+
+  React.useEffect(()=>{ if (initialReader) setReader(SEED_BODIES[4]); }, []);
+
+  const flash = (msg) => { setToast(msg); setTimeout(()=>setToast(null), 1600); };
+
+  const submitDraft = () => {
+    const t = draft.trim();
+    if (!t) return;
+    const type = t.length < 20 ? 'satellite' : t.length < 100 ? 'planet' : 'star';
+    const candidates = bodies.filter(b => b.cluster===cDraftCluster && (b.type==='star' || b.type==='planet'));
+    const anchor = candidates.length ? candidates[Math.floor(Math.random()*candidates.length)].id : undefined;
+    const newBody = anchor ? {
+      id: 'u'+Date.now(), type, anchor,
+      orbitR: type==='satellite' ? 4+Math.random()*4 : 10+Math.random()*10,
+      orbitSpeed: type==='satellite' ? 0.05+Math.random()*0.05 : 0.02+Math.random()*0.03,
+      orbitPhase: Math.random()*Math.PI*2,
+      eccentricity: 0.3 + Math.random()*0.6,
+      tilt: (Math.random()-0.5)*1.6,
+      retrograde: Math.random()<0.3,
+      cluster: cDraftCluster, sentiment: cDraftSentiment,
+      title: t.slice(0, 60), excerpt: t, body: t, time:'just now',
+    } : {
+      id: 'u'+Date.now(), type, x: 30+Math.random()*40, y: 30+Math.random()*40,
+      cluster: cDraftCluster, sentiment: cDraftSentiment,
+      title: t.slice(0, 60), excerpt: t, body: t, time:'just now',
+    };
+    setBodies(b => [...b, newBody]);
+    setDraft(''); setComposing(false);
+    flash('Released into the sky.');
+  };
+
+  // Filter + search
+  const matchSearch = (b) => {
+    if (!query.trim()) return true;
+    const q = query.toLowerCase();
+    return [b.title, b.excerpt, b.body, b.cluster, b.sentiment].some(s => (s||'').toLowerCase().includes(q));
+  };
+  const clusterFiltered = filter==='all' ? bodies : bodies.filter(b=>b.cluster===filter);
+  const matches = searching ? clusterFiltered.filter(matchSearch) : clusterFiltered;
+  const focusedIds = searching && query.trim() ? new Set(matches.map(b=>b.id)) : null;
+
+  // In search mode, we dim non-matches but keep everything for constellation structure
+  const visibleBodies = searching ? bodies : clusterFiltered;
+
+  const onBottomChange = (t) => {
+    setTab(t); setHit(null); setReader(null); setSettings(false); setShowReading(false); setSearching(false);
+  };
+
+  return (
+    <div>
+      <IOSDevice width={360} height={780}>
+        <div style={{position:'absolute',inset:0,color:'#1d2140'}}>
+
+          {tab==='sky' && !reader && (
+            <>
+              <HandDrawnSky
+                bodies={visibleBodies.map(b => focusedIds && !focusedIds.has(b.id) ? {...b, sentiment:'linen'} : b)}
+                onHit={setHit}
+                focused={hit?.id}
+                pan={pan}
+                onPanChange={setPan}
+              />
+
+              {/* Top header */}
+              <div style={{position:'absolute',top:60,left:16,right:16,display:'flex',justifyContent:'space-between',alignItems:'center',gap:10,zIndex:10}}>
+                {searching ? (
+                  <SearchBar value={query} onChange={setQuery}
+                    resultCount={`${matches.length} found`}
+                    onClose={()=>{ setSearching(false); setQuery(''); }}/>
+                ) : (
+                  <>
+                    <GlassPanel style={{borderRadius:999,padding:'8px 16px',display:'flex',alignItems:'center',gap:10,flex:1}}>
+                      <div style={{width:6,height:6,borderRadius:'50%',background:'#c9934b',boxShadow:'0 0 8px #c9934b'}}/>
+                      <span style={{fontFamily:'Cormorant Garamond,serif',fontStyle:'italic',fontSize:15,color:'#1d2140'}}>
+                        {showReading ? "tonight's reading" : 'the sky tonight'}
+                      </span>
+                    </GlassPanel>
+                    <IconButton onClick={()=>setSearching(true)} title="Search">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2e3458" strokeWidth="1.7" strokeLinecap="round">
+                        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+                      </svg>
+                    </IconButton>
+                    <IconButton onClick={()=>setShowReading(s=>!s)} active={showReading} title="Tonight's reading">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={showReading?'#9d7033':'#2e3458'} strokeWidth="1.5"><path d="m12 3 1.9 5.8 6.1.2-4.9 3.7 1.8 5.8L12 15.3l-4.9 3.2 1.8-5.8L4 9l6.1-.2Z"/></svg>
+                    </IconButton>
+                    <IconButton onClick={()=>setSettings(true)} title="Settings">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2e3458" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </IconButton>
+                  </>
+                )}
+              </div>
+
+              {/* Filter chips (hidden when searching for simplicity) */}
+              {!searching && (
+                <div style={{position:'absolute',top:128,left:16,right:16,display:'flex',gap:10,overflowX:'auto',zIndex:10,paddingBottom:4}}>
+                  {FILTERS.map(c=>(
+                    <Chip key={c} label={c} active={filter===c} onClick={()=>{ setFilter(c); setHit(null); }}/>
+                  ))}
+                </div>
+              )}
+
+              {/* Search results list */}
+              {searching && query.trim() && (
+                <div style={{position:'absolute',top:116,left:16,right:16,zIndex:20,maxHeight:360,overflow:'auto'}}>
+                  <GlassPanel style={{padding:8,borderRadius:20}}>
+                    {matches.length===0 && (
+                      <div style={{padding:'18px 12px',fontFamily:'Cormorant Garamond,serif',fontStyle:'italic',fontSize:15,color:'#5a6086'}}>
+                        Nothing quite matches. Try a different word.
+                      </div>
+                    )}
+                    {matches.slice(0,6).map(b=>{
+                      const pal = paletteFor(b.sentiment);
+                      return (
+                        <div key={b.id} onClick={()=>{ setReader(b); setSearching(false); }} style={{
+                          padding:'10px 12px', borderRadius:14, cursor:'pointer',
+                          display:'flex',alignItems:'center',gap:10,
+                          transition:'background 160ms ease',
+                        }}
+                        onMouseEnter={e=>e.currentTarget.style.background='rgba(201,147,75,0.08)'}
+                        onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                          <div style={{width:10,height:10,borderRadius:'50%',
+                            background:`radial-gradient(circle at 30% 30%, ${pal.soft}, ${pal.core})`,
+                            boxShadow:`0 0 8px ${pal.core}88`,flexShrink:0}}/>
+                          <div style={{flex:1,minWidth:0}}>
+                            <div style={{fontFamily:'Cormorant Garamond,serif',fontSize:15,color:'#1d2140',
+                              overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.title}</div>
+                            <div style={{fontFamily:'Inter',fontSize:10,color:'#878cac',letterSpacing:'0.08em',marginTop:2}}>
+                              {b.cluster} · {b.time}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </GlassPanel>
+                </div>
+              )}
+
+              {/* Popover */}
+              {hit && !searching && (
+                <div style={{position:'absolute',bottom:200,left:16,right:16,zIndex:20}}>
+                  <ThoughtPopover body={hit} onClose={()=>setHit(null)} onOpen={b=>{setReader(b); setHit(null);}}/>
+                </div>
+              )}
+
+              {/* Reading */}
+              {showReading && !hit && !searching && (
+                <div style={{position:'absolute',bottom:140,left:16,right:16,zIndex:15}}>
+                  <StarReading
+                    onSave={()=>{ setShowReading(false); flash('Kept.'); }}
+                    onAnother={()=>flash('Drawing another reading…')}
+                    onClose={()=>setShowReading(false)}
+                  />
+                </div>
+              )}
+
+              {/* Pan hint */}
+              {!searching && !hit && !showReading && (
+                <div style={{position:'absolute',top:176,left:0,right:0,display:'flex',justifyContent:'center',zIndex:8,pointerEvents:'none'}}>
+                  <div style={{fontFamily:'Cormorant Garamond,serif',fontStyle:'italic',fontSize:12,color:'#878cac',opacity:0.7}}>
+                    drag to wander the sky
+                  </div>
+                </div>
+              )}
+
+              {toast && (
+                <div style={{position:'absolute',top:180,left:0,right:0,display:'flex',justifyContent:'center',zIndex:30,pointerEvents:'none',animation:'fadeIn 220ms ease'}}>
+                  <GlassPanel style={{padding:'8px 16px',borderRadius:999}}>
+                    <span style={{fontFamily:'Cormorant Garamond,serif',fontStyle:'italic',fontSize:14,color:'#1d2140'}}>{toast}</span>
+                  </GlassPanel>
+                </div>
+              )}
+            </>
+          )}
+
+          {tab==='sky' && reader && <NoteReader body={reader} onBack={()=>setReader(null)}/>}
+          {tab==='me' && <MeScreen count={bodies.length}/>}
+
+          {settings && <SettingsSheet onClose={()=>setSettings(false)}/>}
+
+          {composing && (
+            <ComposeSheet draft={draft} onChange={setDraft} onSubmit={submitDraft} onClose={()=>setComposing(false)}
+              sentiment={cDraftSentiment} onSentiment={setCDraftSentiment}
+              cluster={cDraftCluster} onCluster={setCDraftCluster}/>
+          )}
+
+          {!reader && (
+            <div style={{position:'absolute',bottom:26,left:16,right:16,zIndex:40}}>
+              <BottomNav tab={tab} onChange={onBottomChange}
+                onCompose={()=>{ setTab('sky'); setComposing(true); setSearching(false); }}/>
+            </div>
+          )}
+        </div>
+      </IOSDevice>
+      <div className="screen-label">{label}</div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div className="stage">
+      <div className="stage-header">
+        <h1>starrymind</h1>
+        <p>灵感星图 · 手绘水彩星体，缓慢而多变的轨道。可拖动天空 · 顶部搜索 · 底部 Sky · + · Me。</p>
+      </div>
+      <div className="screens">
+        <Prototype label="Sky — hand-drawn orbits"/>
+        <Prototype label="Search — rain" initialSearching/>
+        <Prototype label="Me — personal sky" initialTab="me"/>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

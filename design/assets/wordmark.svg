@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" fill="none">
+  <defs>
+    <radialGradient id="wmStar" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#f4ead2" stop-opacity="1"></stop>
+      <stop offset="45%" stop-color="#e0b775" stop-opacity="0.65"></stop>
+      <stop offset="100%" stop-color="#c9934b" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="wmHair" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c9934b" stop-opacity="0"></stop>
+      <stop offset="50%" stop-color="#c9934b" stop-opacity="0.7"></stop>
+      <stop offset="100%" stop-color="#c9934b" stop-opacity="0"></stop>
+    </linearGradient>
+  </defs>
+  <line x1="24" y1="30" x2="496" y2="30" stroke="url(#wmHair)" stroke-width="0.6"></line>
+  <text x="260" y="22" font-family="&#39;Cormorant Garamond&#39;,Georgia,serif" font-size="10" font-style="italic" letter-spacing="6" fill="#c9934b" opacity="0.9" text-anchor="middle">— a cartography of thought —</text>
+  <text x="260" y="94" font-family="&#39;Cormorant Garamond&#39;,Georgia,serif" font-size="72" font-weight="300" font-style="italic" letter-spacing="2" fill="#1d2140" text-anchor="middle">starrymind</text>
+  <g transform="translate(286 44)">
+    <ellipse cx="0" cy="0" rx="18" ry="6" stroke="#c9934b" stroke-width="0.5" fill="none" opacity="0.55" transform="rotate(-18)"></ellipse>
+    <circle cx="0" cy="0" r="10" fill="url(#wmStar)"></circle>
+    <circle cx="0" cy="0" r="2.4" fill="#c9934b"></circle>
+    <circle cx="16" cy="-4" r="1" fill="#c9934b" opacity="0.95"></circle>
+  </g>
+  <line x1="24" y1="116" x2="496" y2="116" stroke="url(#wmHair)" stroke-width="0.6"></line>
+  <text x="260" y="132" font-family="&#39;Inter&#39;,sans-serif" font-size="9" letter-spacing="10" fill="#5a6086" opacity="0.9" text-anchor="middle">星  语</text>
+</svg>

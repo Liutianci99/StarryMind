@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 320" fill="none">
+  <defs>
+    <filter id="wobble1" x="-5%" y="-5%" width="110%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="2" seed="3"></feTurbulence>
+      <feDisplacementMap in="SourceGraphic" scale="1.2"></feDisplacementMap>
+    </filter>
+  </defs>
+
+  <g stroke="#1d2140" stroke-width="0.9" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.55" filter="url(#wobble1)">
+    <path d="M180 76 L196 64 L220 68 L224 90 L210 104 L188 98 Z"></path>
+    <path d="M200 104 L198 118 L172 130"></path>
+    <path d="M198 118 L216 148 L208 168 L214 108"></path>
+    <path d="M172 130 L152 186 L196 212"></path>
+    <path d="M196 212 L252 216 L288 192"></path>
+    <path d="M252 216 L260 262"></path>
+    <path d="M288 192 L304 248"></path>
+    <path d="M172 130 L156 176 L168 220"></path>
+  </g>
+
+  <g opacity="0.45">
+    <circle cx="208" cy="80" r="14" fill="#c9934b" opacity="0.35"></circle>
+    <circle cx="196" cy="212" r="12" fill="#c9934b" opacity="0.32"></circle>
+    <circle cx="288" cy="192" r="10" fill="#7d5a8e" opacity="0.4"></circle>
+  </g>
+
+  <g fill="#1d2140">
+    <circle cx="180" cy="76" r="1.6"></circle><circle cx="196" cy="64" r="2"></circle>
+    <circle cx="220" cy="68" r="2.4"></circle><circle cx="224" cy="90" r="1.8"></circle>
+    <circle cx="208" cy="104" r="2.6" fill="#c9934b"></circle>
+    <circle cx="188" cy="98" r="1.6"></circle><circle cx="172" cy="130" r="2.2"></circle>
+    <circle cx="214" cy="108" r="1.6"></circle><circle cx="216" cy="148" r="1.8"></circle>
+    <circle cx="208" cy="168" r="1.8"></circle><circle cx="156" cy="176" r="1.6"></circle>
+    <circle cx="152" cy="186" r="1.8"></circle><circle cx="168" cy="220" r="1.6"></circle>
+    <circle cx="196" cy="212" r="2.8" fill="#c9934b"></circle>
+    <circle cx="252" cy="216" r="2"></circle><circle cx="288" cy="192" r="2.4" fill="#7d5a8e"></circle>
+    <circle cx="260" cy="262" r="1.8"></circle><circle cx="304" cy="248" r="1.6"></circle>
+  </g>
+
+  <g stroke="#c9934b" stroke-width="0.5" stroke-linecap="round" opacity="0.95">
+    <line x1="220" y1="60" x2="220" y2="76"></line><line x1="212" y1="68" x2="228" y2="68"></line>
+    <line x1="196" y1="204" x2="196" y2="220"></line><line x1="188" y1="212" x2="204" y2="212"></line>
+  </g>
+
+  <text x="200" y="300" font-family="&#39;Cormorant Garamond&#39;,Georgia,serif" font-size="13" font-style="italic" fill="#5a6086" text-anchor="middle" opacity="0.9">the thinker · 思者</text>
+</svg>
